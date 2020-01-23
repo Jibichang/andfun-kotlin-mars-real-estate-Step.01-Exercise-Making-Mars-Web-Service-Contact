@@ -17,7 +17,6 @@
 
 package com.example.android.marsrealestate.overview
 
-import android.telecom.Call
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -27,17 +26,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import retrofit2.Callback
-import retrofit2.Response
 
 /**
  * The [ViewModel] that is attached to the [OverviewFragment].
  */
 class OverviewViewModel : ViewModel() {
 
-    private val _response = MutableLiveData<String>()
+    private val _status = MutableLiveData<String>()
     val response: LiveData<String>
-        get() = _response
+        get() = _status
+    private val _property = MutableLiveData<MarsProperty>()
+    val property: LiveData<MarsProperty>
+        get() = _property
+
     private var viewModelJob = Job()
     private val coroutineScope = CoroutineScope(viewModelJob + Dispatchers.Main )
 
@@ -50,9 +51,12 @@ class OverviewViewModel : ViewModel() {
             var getPropertiesDeferred = MarsApi.retrofitService.getProperties()
             try {
                 var listResult = getPropertiesDeferred.await()
-                _response.value = "Success: ${listResult.size} Mars properties retrieved"
+                if (listResult.isNotEmpty()) {
+                    _property.value = listResult[0]
+                }
+                _status.value = "Success: ${listResult.size} Mars properties retrieved"
             } catch (e: Exception) {
-                _response.value = "Failure: ${e.message}"
+                _status.value = "Failure: ${e.message}"
             }
         }
 
